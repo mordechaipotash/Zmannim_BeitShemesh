@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Beit Shemesh Zmanim</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        #date {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            color: #34495e;
+        }
+        #zmanim {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .zman {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .zman:last-child {
+            border-bottom: none;
+        }
+        .zman-name {
+            font-weight: bold;
+        }
+        #refresh {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            cursor: pointer;
+        }
+        #refresh:active {
+            background-color: #2980b9;
+        }
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #333;
+                color: #f0f0f0;
+            }
+            h1, #date {
+                color: #ecf0f1;
+            }
+            #zmanim {
+                background-color: #2c3e50;
+            }
+            .zman {
+                border-bottom-color: #34495e;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Beit Shemesh Zmanim</h1>
+    <div id="date"></div>
+    <div id="zmanim"></div>
+    <button id="refresh">Refresh Zmanim</button>
+
+    <script>
+        const HEBCAL_API_URL = 'https://www.hebcal.com/zmanim?cfg=json&geonameid=295432&tzid=Asia/Jerusalem';
+        const zmanimElement = document.getElementById('zmanim');
+        const dateElement = document.getElementById('date');
+        const refreshButton = document.getElementById('refresh');
+
+        function formatTime(timeString) {
+            const date = new Date(timeString);
+            return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        async function fetchZmanim() {
+            try {
+                const response = await fetch(HEBCAL_API_URL);
+                const data = await response.json();
+                
+                dateElement.textContent = formatDate(data.date);
+                
+                const relevantZmanim = [
+                    { name: 'Alot HaShachar', key: 'alot_hashachar' },
+                    { name: 'Sunrise', key: 'sunrise' },
+                    { name: 'Sof Zman Shma GRA', key: 'sof_zman_shma_gra' },
+                    { name: 'Sof Zman Tfilla GRA', key: 'sof_zman_tfilla_gra' },
+                    { name: 'Chatzot', key: 'chatzot' },
+                    { name: 'Mincha Gedola', key: 'mincha_gedola' },
+                    { name: 'Plag HaMincha', key: 'plag_hamincha' },
+                    { name: 'Sunset', key: 'sunset' },
+                    { name: 'Tzeit HaKochavim', key: 'tzeit_7083deg' }
+                ];
+
+                zmanimElement.innerHTML = relevantZmanim.map(zman => `
+                    <div class="zman">
+                        <span class="zman-name">${zman.name}</span>
+                        <span class="zman-time">${formatTime(data.times[zman.key])}</span>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error fetching zmanim:', error);
+                zmanimElement.innerHTML = '<p>Error fetching zmanim. Please try again later.</p>';
+            }
+        }
+
+        refreshButton.addEventListener('click', fetchZmanim);
+
+        // Initial fetch
+        fetchZmanim();
+    </script>
+</body>
+</html>
